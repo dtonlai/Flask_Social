@@ -26,15 +26,19 @@ def afterRequest(response):
 @app.route('/register', methods('GET', 'POST'))
 def register():
 	form = forms.RegisterForm()
-	if form.validates_on_submit():
+	if form.validate_on_submit():
 		flash("Yay, you registered!", "success")
-		model.User.create_user(
+		model.User.createUser(
 			username=form.username.data,
 			email=form.email.data,
 			password=form.password.data
 			)
 		return redirect(url_for('index'))
 	return render_template('register.html',form=form)
+
+@app.route('/', methods('GET'))
+def index():
+	return "Hi"
 
 loginManager = LoginManager()
 loginManager.init_app(flaskApp)
