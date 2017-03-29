@@ -15,7 +15,7 @@ flaskApp.secret_key = "aojsdfonzsdofewutoutaoijnoe!igaosudg9ongoansgoiag"
 def beforeRequest():
 	"""Connect to the database before each request"""
 	g.db = models.DATABASE
-	g.db.connnect()
+	g.db.connect()
 
 @flaskApp.after_request
 def afterRequest(response):
@@ -23,7 +23,7 @@ def afterRequest(response):
 	g.db.close()
 	return response
 
-@app.route('/register', methods('GET', 'POST'))
+@flaskApp.route('/register', methods=['GET', 'POST'])
 def register():
 	form = forms.RegisterForm()
 	if form.validate_on_submit():
@@ -36,7 +36,7 @@ def register():
 		return redirect(url_for('index'))
 	return render_template('register.html',form=form)
 
-@app.route('/', methods('GET'))
+@flaskApp.route('/', methods=['GET'])
 def index():
 	return "Hi"
 
@@ -44,7 +44,7 @@ loginManager = LoginManager()
 loginManager.init_app(flaskApp)
 loginManager.login_view = "login"
 
-@login_manager.user_loader
+@loginManager.user_loader
 def load_user(userid):
 	try:
 		return models.User.get(models.User.id == userid)
@@ -53,11 +53,14 @@ def load_user(userid):
 
 if __name__ == "__main__":
 	models.initialize()
-	models.User.create_user(
-		name= 'dtonlai',
-		email = 'dtonlai@ualberta.ca',
-		password='password',
-		admmin= True,
-		)
-	app.run(debug= DEBUG,port= PORT,host= HOST)
+	try:
+		models.User.createUser(
+			username= 'dtonlai',
+			email = 'dtonlai@ualberta.ca',
+			password='password',
+			admin= True,
+			)
+	except ValueError:
+		pass
+	flaskApp.run(debug= DEBUG,port= PORT,host= HOST)
 
