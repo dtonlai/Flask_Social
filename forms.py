@@ -20,8 +20,7 @@ class RegisterForm(Form):
 			DataRequired(),
 			Regexp(
 				r'^[a-zA-Z0-9_]+$',
-				message=("Username should be one word, letters",
-					"numbers, and underscores only.")
+				message=("Username should be one word, letters, numbers, and underscores only.")
 				),
 			name_exists
 			])
