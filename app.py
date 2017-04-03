@@ -1,6 +1,6 @@
 from flask import (Flask, g, render_template, flash, redirect, url_for)
 from flask_bcrypt import check_password_hash
-from flask_login import LoginManager, login_user
+from flask_login import LoginManager, login_user, logout_user, login_required
 
 import forms
 import models
@@ -9,39 +9,50 @@ DEBUG = True
 PORT = 8000
 HOST = '0.0.0.0'
 
-flaskApp = Flask(__name__)
-flaskApp.secret_key = "aojsdfonzsdofewutoutaoijnoe!igaosudg9ongoansgoiag"
+app = Flask(__name__)
+app.secret_key = 'auoesh.bouoastuh.43,uoausoehuosth3ououea.auoub!'
 
-loginManager = LoginManager()
-loginManager.init_app(flaskApp)
-loginManager.login_view = "login"
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
 
-@flaskApp.before_request
-def beforeRequest():
-    """Connect to the database before each request"""
+@login_manager.user_loader
+def load_user(userid):
+    try:
+        return models.User.get(models.User.id == userid)
+    except models.DoesNotExist:
+        return None
+
+
+@app.before_request
+def before_request():
+    """Connect to the database before each request."""
     g.db = models.DATABASE
     g.db.connect()
 
-@flaskApp.after_request
-def afterRequest(response):
-    """Close the database connection after each request"""
+
+@app.after_request
+def after_request(response):
+    """Close the database connection after each request."""
     g.db.close()
     return response
 
-@flaskApp.route('/register', methods=('GET', 'POST'))
+
+@app.route('/register', methods=('GET', 'POST'))
 def register():
     form = forms.RegisterForm()
     if form.validate_on_submit():
         flash("Yay, you registered!", "success")
-        models.User.createUser(
+        models.User.create_user(
             username=form.username.data,
             email=form.email.data,
             password=form.password.data
-            )
+        )
         return redirect(url_for('index'))
-    return render_template('register.html',form=form)
+    return render_template('register.html', form=form)
 
-@flaskApp.route('/login', methods=('GET', 'POST'))
+
+@app.route('/login', methods=('GET', 'POST'))
 def login():
     form = forms.LoginForm()
     if form.validate_on_submit():
@@ -58,28 +69,26 @@ def login():
                 flash("Your email or password doesn't match!", "error")
     return render_template('login.html', form=form)
 
-@flaskApp.route('/', methods=['GET'])
+@app.route('/logout', methods=('GET'))
+@login_required
+def logout():
+    logout_user()
+    flash("You've successfully been logged out!", "success")
+    return redirect(url_for('index'))
+
+@app.route('/')
 def index():
-    return "Hi"
+    return 'Hey'
 
-
-@loginManager.user_loader
-def load_user(userid):
-    try:
-        return models.User.get(models.User.id == userid)
-    except models.DoesNotExist:
-        return None
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     models.initialize()
     try:
-        models.User.createUser(
-            username= 'dtonlai',
-            email = 'dtonlai@ualberta.ca',
+        models.User.create_user(
+            username='kennethlove',
+            email='kenneth@teamtreehouse.com',
             password='password',
-            admin= True,
-            )
+            admin=True
+        )
     except ValueError:
         pass
-    flaskApp.run(debug= DEBUG,port= PORT,host= HOST)
-
+    app.run(debug=DEBUG, host=HOST, port=PORT)
