@@ -30,7 +30,7 @@
             <div class="grid-33">
 
                 <!-- Say Hi -->
-                <h1>Hello{% if current_user.is_authenticated %}{{ current_user.username }}{% endif %}!</h1>
+                <h1>Hello{% if current_user.is_authenticated %} {{ current_user.username }}{% endif %}!</h1>
 
             </div>
 
@@ -65,6 +65,12 @@
             <nav>
 
               <a href="{{ url_for('index') }}">All</a>
+
+                {% if current_user.is_authenticated %}
+
+                <a href="{{ url_for('post') }}", class="new">Create New Post</a>
+
+                {% endif %}
 
             </nav>
 
