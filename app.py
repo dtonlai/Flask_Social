@@ -1,6 +1,7 @@
 from flask import (Flask, g, render_template, flash, redirect, url_for)
 from flask_bcrypt import check_password_hash
-from flask_login import LoginManager, login_user, logout_user, login_required
+from flask_login import (LoginManager, login_user, logout_user,
+                         login_required, current_user)
 
 import forms
 import models
@@ -29,7 +30,7 @@ def before_request():
     """Connect to the database before each request."""
     g.db = models.DATABASE
     g.db.connect()
-
+    g.user = current_user
 
 @app.after_request
 def after_request(response):
@@ -76,6 +77,18 @@ def logout():
     flash("You've successfully been logged out!", "success")
     return redirect(url_for('index'))
 
+@app.route('/new_post', methods=('GET', 'POST'))
+@login_required
+def post():
+    form = forms.PostForm()
+    if form.validate_on_submit():
+        models.Post.create(user=g.user._get_current_object(),
+                           content=form.content.data.strip())
+        flash("Message posted, thanks!", "success")
+        return redirect(url_for('index'))
+    return render_template('post.html', form=form)
+
+
 @app.route('/')
 def index():
     return 'Hey'
@@ -84,9 +97,9 @@ if __name__ == '__main__':
     models.initialize()
     try:
         models.User.create_user(
-            username='kennethlove',
-            email='kenneth@teamtreehouse.com',
-            password='password',
+            username='dtonlai',
+            email='dtonlai@ualberta.ca',
+            password='keyword',
             admin=True
         )
     except ValueError:
